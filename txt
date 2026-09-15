@@ -1,0 +1,25 @@
+hussain-digital-showroom/
+├── server.js              # Express REST API, JWT Auth, SQLite/JSON DB, OG Meta SSR
+├── package.json           # Dependencies (express, jsonwebtoken, bcryptjs, cors, multer)
+└── public/
+    ├── index.html         # Semantic HTML5 luxury showroom markup
+    ├── styles.css         # #0D1015 & #C8F238 design system & responsive layout
+    └── app.js            # Client logic: Filters, Image Carousels, WhatsApp, Admin Dashboard
+    How to Deploy & Launch
+Install Dependencies:
+
+Bash
+npm install
+Start the Production Server:
+
+Bash
+npm start
+Access Your Application:
+
+Showroom Frontend: http://localhost:3000
+
+Admin Panel Login: Click Admin in top navbar.
+
+Default Admin Username: admin
+
+Default Admin Password: AdminPass123!

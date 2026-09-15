@@ -1,0 +1,8 @@
+{
+  "name": "HUSSAIN Digital Car Showroom",
+  "description": "Luxury dark automotive digital showroom with verified inventory, instant deals, 24/7 services, and admin management portal.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
