@@ -7,6 +7,17 @@
   included_files = ["database.json"]
   node_bundler = "esbuild"
 
+# Redirect image blob requests to the serverless function
+[[redirects]]
+  from = "/admin"
+  to = "/admin.html"
+  status = 200
+
+[[redirects]]
+  from = "/api/images/*"
+  to = "/.netlify/functions/api/images/:splat"
+  status = 200
+
 # Redirect API calls to the serverless function
 [[redirects]]
   from = "/api/*"

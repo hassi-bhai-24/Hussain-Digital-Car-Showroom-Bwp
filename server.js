@@ -7,6 +7,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const crypto = require('crypto');
+const { getStore } = require('@netlify/blobs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -14,9 +15,33 @@ const DB_FILE = path.join(__dirname, 'database.json');
 const UPLOADS_DIR = path.join(__dirname, 'uploads');
 const PUBLIC_DIR = path.join(__dirname, 'public');
 
-// Ensure Uploads Directory exists
+// Ensure Uploads Directory exists for local filesystem fallback
 if (!fs.existsSync(UPLOADS_DIR)) {
-    fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+    try {
+        fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+    } catch {}
+}
+
+// In-memory cache of binary image blobs for instantaneous serving
+const memoryBlobImageCache = new Map();
+
+// Helper to safely get Netlify Blob Store if configured in environment
+function getNetlifyBlobStore(storeName) {
+    try {
+        const siteID = process.env.SITE_ID || process.env.NETLIFY_SITE_ID;
+        const token = process.env.NETLIFY_API_TOKEN || process.env.NETLIFY_AUTH_TOKEN;
+        
+        const options = { name: storeName, consistency: 'strong' };
+        if (siteID && token) {
+            options.siteID = siteID;
+            options.token = token;
+        }
+
+        const store = getStore(options);
+        return store;
+    } catch (e) {
+        return null;
+    }
 }
 
 // ---------------------------------------------------------
@@ -50,6 +75,9 @@ app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 
 // Static asset serving
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(PUBLIC_DIR, 'admin.html'));
+});
 app.use(express.static(PUBLIC_DIR));
 app.use('/uploads', express.static(UPLOADS_DIR, {
     setHeaders: (res) => {
@@ -168,6 +196,68 @@ function getDBPath() {
     return DB_FILE;
 }
 
+let inMemoryDBCache = null;
+let lastDBFetchTime = 0;
+const DB_CACHE_TTL_MS = 1000; // 1s cache for high concurrency
+
+async function readDBAsync() {
+    const now = Date.now();
+    if (inMemoryDBCache && (now - lastDBFetchTime < DB_CACHE_TTL_MS)) {
+        return inMemoryDBCache;
+    }
+
+    // 1. Try reading from Netlify Blobs persistent store
+    const blobStore = getNetlifyBlobStore('showroom-data');
+    if (blobStore) {
+        try {
+            const blobData = await blobStore.get('database.json', { type: 'json' });
+            if (blobData && typeof blobData === 'object') {
+                if (!blobData.admin) {
+                    blobData.admin = {
+                        username: 'admin',
+                        passwordHash: bcrypt.hashSync('AdminPass123!', 10),
+                        tokenVersion: 1,
+                        isDefaultPassword: true
+                    };
+                }
+                if (!blobData.admin.tokenVersion) blobData.admin.tokenVersion = 1;
+                if (!blobData.security || !blobData.security.jwtSecret) {
+                    blobData.security = { jwtSecret: crypto.randomBytes(32).toString('hex') };
+                }
+                inMemoryDBCache = blobData;
+                lastDBFetchTime = now;
+                return blobData;
+            }
+        } catch (err) {
+            console.warn('Netlify Blobs read notice:', err.message);
+        }
+    }
+
+    // 2. Fallback to local filesystem / bundled database.json
+    const diskData = readDB();
+    inMemoryDBCache = diskData;
+    lastDBFetchTime = now;
+    return diskData;
+}
+
+async function writeDBAsync(data) {
+    inMemoryDBCache = data;
+    lastDBFetchTime = Date.now();
+
+    // 1. Always attempt write to Netlify Blobs for global cloud persistence
+    const blobStore = getNetlifyBlobStore('showroom-data');
+    if (blobStore) {
+        try {
+            await blobStore.setJSON('database.json', data);
+        } catch (err) {
+            console.warn('Netlify Blobs write error:', err.message);
+        }
+    }
+
+    // 2. Sync to disk or /tmp for local server & process continuity
+    writeDB(data);
+}
+
 function readDB() {
     try {
         const filePath = getDBPath();
@@ -277,20 +367,13 @@ function recordSuccessfulLogin(ip) {
 }
 
 // ---------------------------------------------------------
-// 5. HARDENED FILE UPLOAD SECURITY (MULTER)
+// 5. HARDENED FILE UPLOAD SECURITY (MULTER - MEMORY STORAGE FOR SERVERLESS)
 // ---------------------------------------------------------
 const ALLOWED_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp']);
 const ALLOWED_MIME_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, UPLOADS_DIR),
-    filename: (req, file, cb) => {
-        const ext = path.extname(file.originalname).toLowerCase();
-        // Cryptographically random unique filename to prevent path traversal or collision
-        const safeName = `${Date.now()}-${crypto.randomBytes(12).toString('hex')}${ext}`;
-        cb(null, safeName);
-    }
-});
+// Using memoryStorage so files are processed safely in serverless environments
+const storage = multer.memoryStorage();
 
 const upload = multer({
     storage,
@@ -325,8 +408,43 @@ const uploadMiddleware = (req, res, next) => {
     }
 };
 
-function parseImages(files = [], external, existingImages = []) {
-    const uploaded = (files || []).map(f => `/uploads/${path.basename(f.filename)}`);
+async function saveUploadedImagesAsync(files = [], external, existingImages = []) {
+    const uploadedUrls = [];
+    const imageStore = getNetlifyBlobStore('showroom-images');
+
+    for (const file of files || []) {
+        const ext = path.extname(file.originalname).toLowerCase() || '.jpg';
+        const key = `${Date.now()}-${crypto.randomBytes(12).toString('hex')}${ext}`;
+
+        // Store in memory cache for immediate serving across active instances
+        memoryBlobImageCache.set(key, {
+            data: file.buffer,
+            contentType: file.mimetype || 'image/jpeg'
+        });
+
+        // 1. Try persisting to Netlify Blobs
+        let storedInBlob = false;
+        if (imageStore) {
+            try {
+                await imageStore.set(key, file.buffer, {
+                    metadata: { contentType: file.mimetype || 'image/jpeg' }
+                });
+                storedInBlob = true;
+            } catch (blobErr) {
+                console.warn('Netlify Blobs image write error:', blobErr.message);
+            }
+        }
+
+        // 2. Also write to local disk if available
+        try {
+            const diskPath = path.join(UPLOADS_DIR, key);
+            fs.writeFileSync(diskPath, file.buffer);
+        } catch {}
+
+        // Use our public image route: works everywhere (Netlify Blobs + memory + disk)
+        uploadedUrls.push(`/api/images/${key}`);
+    }
+
     let externals = [];
     if (Array.isArray(external)) {
         externals = external.map(s => String(s).trim()).filter(Boolean);
@@ -344,7 +462,7 @@ function parseImages(files = [], external, existingImages = []) {
         }
     });
 
-    const combined = [...uploaded, ...safeExternals];
+    const combined = [...uploadedUrls, ...safeExternals];
     return combined.length ? combined : (existingImages.length ? existingImages : ['https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=1200&q=80']);
 }
 
@@ -373,13 +491,63 @@ function authenticateToken(req, res, next) {
 }
 
 // ---------------------------------------------------------
-// 7. PUBLIC SHOWROOM APIS
+// 7. PUBLIC SHOWROOM APIS & CLOUD IMAGE SERVING
 // ---------------------------------------------------------
 app.get('/', (req, res) => res.sendFile(path.join(PUBLIC_DIR, 'index.html')));
 
-app.get('/api/public/data', (req, res) => {
-    const db = readDB();
+// Image delivery endpoint: Serves uploaded vehicle photos from memory cache, Netlify Blobs, or disk
+app.get('/api/images/:key', async (req, res) => {
+    const rawKey = req.params.key;
+    if (!rawKey || !/^[a-zA-Z0-9_.-]+$/.test(rawKey)) {
+        return res.status(400).send('Invalid image key.');
+    }
+
+    // Set cache headers: 1 year immutable for high performance
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+
+    // 1. Check in-memory cache
+    if (memoryBlobImageCache.has(rawKey)) {
+        const item = memoryBlobImageCache.get(rawKey);
+        res.setHeader('Content-Type', item.contentType || 'image/jpeg');
+        return res.send(item.data);
+    }
+
+    // 2. Check local disk fallback
+    const diskPath = path.join(UPLOADS_DIR, rawKey);
+    if (fs.existsSync(diskPath)) {
+        return res.sendFile(diskPath);
+    }
+
+    // 3. Fetch from Netlify Blobs
+    const imageStore = getNetlifyBlobStore('showroom-images');
+    if (imageStore) {
+        try {
+            const blobData = await imageStore.get(rawKey, { type: 'arrayBuffer' });
+            if (blobData) {
+                const buffer = Buffer.from(blobData);
+                const ext = path.extname(rawKey).toLowerCase();
+                let contentType = 'image/jpeg';
+                if (ext === '.png') contentType = 'image/png';
+                if (ext === '.webp') contentType = 'image/webp';
+                
+                memoryBlobImageCache.set(rawKey, { data: buffer, contentType });
+                res.setHeader('Content-Type', contentType);
+                return res.send(buffer);
+            }
+        } catch (err) {
+            console.warn('Netlify Blobs image fetch error:', err.message);
+        }
+    }
+
+    // Fallback: placeholder image redirect if not found
+    res.redirect('https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=1200&q=80');
+});
+
+app.get('/api/public/data', async (req, res) => {
+    const db = await readDBAsync();
     const phoneInfo = normalizePhone(db.config?.whatsappNumber || '923238194402');
+    res.setHeader('Cache-Control', 'no-cache');
     // Strictly sanitize and exclude any internal security or password hash data
     res.json({
         config: {
@@ -393,11 +561,11 @@ app.get('/api/public/data', (req, res) => {
     });
 });
 
-app.get('/share/car/:id', (req, res) => {
+app.get('/share/car/:id', async (req, res) => {
     if (!isValidVehicleId(req.params.id)) {
         return res.status(400).send('Invalid vehicle identifier.');
     }
-    const db = readDB();
+    const db = await readDBAsync();
     const car = (db.cars || []).find(c => c.id === req.params.id);
     const config = db.config || {};
     const title = car ? `${sanitizeText(car.name)} (${sanitizeText(car.year)}) - ${sanitizeText(config.showroomName)}` : sanitizeText(config.showroomName);
@@ -411,16 +579,17 @@ app.get('/share/car/:id', (req, res) => {
 <script>window.location.href = "${siteUrl}";</script></head><body>Redirecting to verified vehicle...</body></html>`);
 });
 
-app.get('/api/cars', (req, res) => {
-    const db = readDB();
+app.get('/api/cars', async (req, res) => {
+    const db = await readDBAsync();
+    res.setHeader('Cache-Control', 'no-cache');
     res.json(db.cars || []);
 });
 
-app.get('/api/cars/:id', (req, res) => {
+app.get('/api/cars/:id', async (req, res) => {
     if (!isValidVehicleId(req.params.id)) {
         return res.status(400).json({ error: 'Invalid vehicle identifier format.' });
     }
-    const db = readDB();
+    const db = await readDBAsync();
     const car = (db.cars || []).find(c => c.id === req.params.id);
     if (!car) return res.status(404).json({ error: 'Vehicle not found.' });
     res.json(car);
@@ -429,10 +598,10 @@ app.get('/api/cars/:id', (req, res) => {
 // ---------------------------------------------------------
 // 8. SECURE ADMIN MANAGEMENT ENDPOINTS
 // ---------------------------------------------------------
-app.post('/api/admin/login', checkLoginRateLimit, (req, res) => {
+app.post('/api/admin/login', checkLoginRateLimit, async (req, res) => {
     const ip = getClientIP(req);
     const { username, password } = req.body || {};
-    const db = readDB();
+    const db = await readDBAsync();
 
     const cleanInputUser = (username || '').trim().toLowerCase();
     const storedUser = (db.admin?.username || 'admin').trim().toLowerCase();
@@ -480,8 +649,8 @@ app.post('/api/admin/login', checkLoginRateLimit, (req, res) => {
     });
 });
 
-app.get('/api/admin/verify', authenticateToken, (req, res) => {
-    const db = readDB();
+app.get('/api/admin/verify', authenticateToken, async (req, res) => {
+    const db = await readDBAsync();
     res.json({
         valid: true,
         username: db.admin?.username || req.user.username,
@@ -496,9 +665,9 @@ app.get('/api/admin/verify', authenticateToken, (req, res) => {
     });
 });
 
-app.put('/api/admin/change-password', authenticateToken, (req, res) => {
+app.put('/api/admin/change-password', authenticateToken, async (req, res) => {
     const { currentPassword, newPassword, newUsername } = req.body || {};
-    const db = readDB();
+    const db = await readDBAsync();
 
     if (!currentPassword) {
         return res.status(400).json({ error: 'Current password is required to verify identity.' });
@@ -537,7 +706,7 @@ app.put('/api/admin/change-password', authenticateToken, (req, res) => {
         db.admin.tokenVersion = (db.admin.tokenVersion || 1) + 1;
     }
 
-    writeDB(db);
+    await writeDBAsync(db);
 
     // Issue refreshed token with the updated tokenVersion
     const secret = getJWTSecret();
@@ -555,11 +724,11 @@ app.put('/api/admin/change-password', authenticateToken, (req, res) => {
     });
 });
 
-app.post('/api/admin/cars', authenticateToken, uploadMiddleware, (req, res) => {
-    const db = readDB();
+app.post('/api/admin/cars', authenticateToken, uploadMiddleware, async (req, res) => {
+    const db = await readDBAsync();
     const body = req.body || {};
     const externalImages = body.externalImages || body.images;
-    const images = parseImages(req.files, externalImages);
+    const images = await saveUploadedImagesAsync(req.files, externalImages);
 
     const price = parseFloat(body.cashPrice);
     const validPrice = !isNaN(price) && price >= 0 ? price : 0;
@@ -580,15 +749,15 @@ app.post('/api/admin/cars', authenticateToken, uploadMiddleware, (req, res) => {
 
     db.cars = db.cars || [];
     db.cars.unshift(newCar);
-    writeDB(db);
+    await writeDBAsync(db);
     res.status(201).json({ message: 'Vehicle added to showroom inventory securely.', car: newCar });
 });
 
-app.put('/api/admin/cars/:id', authenticateToken, uploadMiddleware, (req, res) => {
+app.put('/api/admin/cars/:id', authenticateToken, uploadMiddleware, async (req, res) => {
     if (!isValidVehicleId(req.params.id)) {
         return res.status(400).json({ error: 'Invalid vehicle ID format.' });
     }
-    const db = readDB();
+    const db = await readDBAsync();
     const index = (db.cars || []).findIndex(c => c.id === req.params.id);
     if (index === -1) return res.status(404).json({ error: 'Vehicle not found.' });
 
@@ -598,7 +767,7 @@ app.put('/api/admin/cars/:id', authenticateToken, uploadMiddleware, (req, res) =
     let baseImages = keepExisting ? [...(existing.images || [])] : [];
     
     const externalImages = body.externalImages || body.images;
-    const newImages = parseImages(req.files, externalImages, baseImages);
+    const newImages = await saveUploadedImagesAsync(req.files, externalImages, baseImages);
     const finalImages = keepExisting && (req.files?.length || externalImages) ? [...baseImages, ...newImages] : newImages;
 
     let updatedPrice = existing.cashPrice;
@@ -621,11 +790,11 @@ app.put('/api/admin/cars/:id', authenticateToken, uploadMiddleware, (req, res) =
         updatedAt: new Date().toISOString()
     };
 
-    writeDB(db);
+    await writeDBAsync(db);
     res.json({ message: 'Vehicle updated successfully.', car: db.cars[index] });
 });
 
-app.patch('/api/admin/cars/:id/status', authenticateToken, (req, res) => {
+app.patch('/api/admin/cars/:id/status', authenticateToken, async (req, res) => {
     if (!isValidVehicleId(req.params.id)) {
         return res.status(400).json({ error: 'Invalid vehicle ID format.' });
     }
@@ -633,32 +802,32 @@ app.patch('/api/admin/cars/:id/status', authenticateToken, (req, res) => {
     if (!['available', 'pending', 'sold'].includes(status)) {
         return res.status(400).json({ error: 'Invalid vehicle status. Must be available, pending, or sold.' });
     }
-    const db = readDB();
+    const db = await readDBAsync();
     const car = (db.cars || []).find(c => c.id === req.params.id);
     if (!car) return res.status(404).json({ error: 'Vehicle not found.' });
     
     car.status = status;
     car.updatedAt = new Date().toISOString();
-    writeDB(db);
+    await writeDBAsync(db);
     res.json({ message: `Vehicle status changed to ${status}.`, car });
 });
 
-app.delete('/api/admin/cars/:id', authenticateToken, (req, res) => {
+app.delete('/api/admin/cars/:id', authenticateToken, async (req, res) => {
     if (!isValidVehicleId(req.params.id)) {
         return res.status(400).json({ error: 'Invalid vehicle ID format.' });
     }
-    const db = readDB();
+    const db = await readDBAsync();
     const beforeCount = (db.cars || []).length;
     db.cars = (db.cars || []).filter(c => c.id !== req.params.id);
     if (db.cars.length === beforeCount) {
         return res.status(404).json({ error: 'Vehicle not found.' });
     }
-    writeDB(db);
+    await writeDBAsync(db);
     res.json({ message: 'Vehicle removed from inventory successfully.' });
 });
 
-app.put('/api/admin/config', authenticateToken, (req, res) => {
-    const db = readDB();
+app.put('/api/admin/config', authenticateToken, async (req, res) => {
+    const db = await readDBAsync();
     const { showroomName, whatsappNumber, address, description } = req.body || {};
     
     const phoneInfo = normalizePhone(whatsappNumber || db.config.whatsappNumber);
@@ -670,7 +839,7 @@ app.put('/api/admin/config', authenticateToken, (req, res) => {
         address: address ? sanitizeText(address, 200) : db.config.address,
         description: description ? sanitizeText(description, 500) : db.config.description
     };
-    writeDB(db);
+    await writeDBAsync(db);
     res.json({ message: 'Showroom configuration updated securely.', config: db.config });
 });
 

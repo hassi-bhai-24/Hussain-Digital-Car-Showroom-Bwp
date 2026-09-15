@@ -32,6 +32,8 @@ const requiredFiles = [
     'public/index.html',
     'public/styles.css',
     'public/app.js',
+    'public/admin.html',
+    'public/admin.js',
     'public/data/showroom.json',
     'server.js',
     'package.json'
