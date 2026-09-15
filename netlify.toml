@@ -4,6 +4,7 @@
   functions = "netlify/functions"
 
 [functions]
+  included_files = ["database.json"]
   node_bundler = "esbuild"
 
 # Redirect API calls to the serverless function

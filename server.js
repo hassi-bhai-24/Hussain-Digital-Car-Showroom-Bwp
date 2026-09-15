@@ -27,6 +27,10 @@ app.disable('x-powered-by');
 
 // Add HTTP security headers
 app.use((req, res, next) => {
+    // Netlify Functions URL rewrite support
+    if (req.url.startsWith('/.netlify/functions/api')) {
+        req.url = req.url.replace('/.netlify/functions/api', '/api');
+    }
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('X-XSS-Protection', '1; mode=block');
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
@@ -150,13 +154,23 @@ function initDatabase() {
 }
 initDatabase();
 
+function getDBPath() {
+    const candidates = [
+        path.join('/tmp', 'database.json'),
+        path.join(process.cwd(), 'database.json'),
+        path.join(__dirname, 'database.json'),
+        path.join(__dirname, '..', '..', 'database.json'),
+        DB_FILE
+    ];
+    for (const p of candidates) {
+        if (fs.existsSync(p)) return p;
+    }
+    return DB_FILE;
+}
+
 function readDB() {
     try {
-        let filePath = DB_FILE;
-        const tmpFile = path.join('/tmp', 'database.json');
-        if (fs.existsSync(tmpFile)) {
-            filePath = tmpFile;
-        }
+        const filePath = getDBPath();
         const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
         if (!data.admin) {
             data.admin = {
@@ -196,7 +210,8 @@ function readDB() {
 
 function writeDB(data) {
     try {
-        fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
+        const primary = getDBPath();
+        fs.writeFileSync(primary, JSON.stringify(data, null, 2));
     } catch (err) {
         // Fallback for serverless environments with read-only root filesystem
         try {
