@@ -55,6 +55,12 @@
                             <i class="fa-solid fa-eye"></i>
                         </button>
                     </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem; font-size: 0.8rem;">
+                        <span style="color: var(--text-secondary);">Master Key: <code style="color: var(--color-lime); background: rgba(212,242,50,0.12); padding: 3px 7px; border-radius: 4px; font-weight: 700; letter-spacing: 0.5px;">AdminPass123!</code></span>
+                        <button type="button" class="btn-ghost" style="padding: 3px 10px; font-size: 0.78rem; color: var(--color-lime); border: 1px solid rgba(212,242,50,0.3); border-radius: 4px; cursor: pointer;" onclick="quickFillMasterPass()">
+                            <i class="fa-solid fa-key"></i> Quick Fill
+                        </button>
+                    </div>
                 </div>
                 <div class="form-group" style="margin-top: -0.25rem; margin-bottom: 1.25rem;">
                     <details style="font-size: 0.8rem; color: var(--text-secondary);">
@@ -368,6 +374,21 @@
     <!-- Toast Notification Container -->
     <div id="toastContainer" class="toast-container"></div>
 
-    <script src="admin.js?v=2.6.0"></script>
+    <script>
+        function quickFillMasterPass() {
+            const passInput = document.getElementById('adminPass');
+            const userInput = document.getElementById('adminUser');
+            if (passInput) {
+                passInput.value = 'AdminPass123!';
+                passInput.focus();
+            }
+            if (userInput) {
+                userInput.value = 'admin';
+            }
+            const feedback = document.getElementById('adminLoginFeedback');
+            if (feedback) feedback.className = 'alert-box hidden';
+        }
+    </script>
+    <script src="admin.js?v=3.5.0"></script>
 </body>
 </html>
