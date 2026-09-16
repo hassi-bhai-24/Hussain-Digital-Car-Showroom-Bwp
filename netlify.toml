@@ -9,6 +9,16 @@
 
 # Redirect image blob requests to the serverless function
 [[redirects]]
+  from = "/secret-manager"
+  to = "/secret-showroom-manager-2026.html"
+  status = 200
+
+[[redirects]]
+  from = "/secret-showroom-manager-2026"
+  to = "/secret-showroom-manager-2026.html"
+  status = 200
+
+[[redirects]]
   from = "/admin"
   to = "/admin.html"
   status = 200

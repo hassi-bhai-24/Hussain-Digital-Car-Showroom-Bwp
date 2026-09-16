@@ -84,6 +84,12 @@ app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 
 // Static asset serving
+app.get('/secret-manager', (req, res) => {
+    res.sendFile(path.join(PUBLIC_DIR, 'secret-showroom-manager-2026.html'));
+});
+app.get('/secret-showroom-manager-2026', (req, res) => {
+    res.sendFile(path.join(PUBLIC_DIR, 'secret-showroom-manager-2026.html'));
+});
 app.get('/admin', (req, res) => {
     res.sendFile(path.join(PUBLIC_DIR, 'admin.html'));
 });

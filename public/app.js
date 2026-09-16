@@ -75,6 +75,18 @@ async function fetchPublicData() {
             const data = await res.json();
             config = data.config || {};
             cars = data.cars || [];
+            try {
+                if (cars.length > 0) localStorage.setItem('showroom_cars', JSON.stringify(cars));
+                if (Object.keys(config).length > 0) localStorage.setItem('showroom_config', JSON.stringify(config));
+            } catch (e) {}
+        } else {
+            // Local persistence fallback if API and static JSON fail or when running in static mode
+            try {
+                const localCars = localStorage.getItem('showroom_cars');
+                const localConfig = localStorage.getItem('showroom_config');
+                if (localCars) cars = JSON.parse(localCars);
+                if (localConfig) config = JSON.parse(localConfig);
+            } catch (e) {}
         }
 
         appState.config = config;
