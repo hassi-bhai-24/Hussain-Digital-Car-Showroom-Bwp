@@ -130,7 +130,7 @@ async function loadShowroomData() {
 
         if (!res || !res.ok) {
             try {
-                res = await fetch('data/showroom.json', { cache: 'no-store' });
+                res = await fetch('/data/showroom.json', { cache: 'no-store' });
             } catch (fallbackErr) {
                 // Secondary fallback
             }
@@ -140,21 +140,27 @@ async function loadShowroomData() {
             const data = await res.json();
             adminState.cars = data.cars || [];
             adminState.config = data.config || {};
-            
-            // Update admin header brand name
-            const brandEl = document.getElementById('adminHeaderBrand');
-            if (brandEl && adminState.config.showroomName) {
-                brandEl.textContent = `${adminState.config.showroomName.toUpperCase()} ADMIN`;
-            }
-            const subtitleEl = document.getElementById('adminShowroomSubtitle');
-            if (subtitleEl && adminState.config.showroomName) {
-                subtitleEl.textContent = `Managing inventory, prices, and settings for ${adminState.config.showroomName}`;
-            }
-
-            updateAdminStats();
-            renderAdminTable();
-            populateConfigForm();
+        } else {
+            // Local persistence fallback
+            const localCars = localStorage.getItem('showroom_cars');
+            const localConfig = localStorage.getItem('showroom_config');
+            if (localCars) adminState.cars = JSON.parse(localCars);
+            if (localConfig) adminState.config = JSON.parse(localConfig);
         }
+        
+        // Update admin header brand name
+        const brandEl = document.getElementById('adminHeaderBrand');
+        if (brandEl && adminState.config.showroomName) {
+            brandEl.textContent = `${adminState.config.showroomName.toUpperCase()} ADMIN`;
+        }
+        const subtitleEl = document.getElementById('adminShowroomSubtitle');
+        if (subtitleEl && adminState.config.showroomName) {
+            subtitleEl.textContent = `Managing inventory, prices, and settings for ${adminState.config.showroomName}`;
+        }
+
+        updateAdminStats();
+        renderAdminTable();
+        populateConfigForm();
     } catch (err) {
         console.error('Failed to load showroom data:', err);
     }
@@ -213,7 +219,8 @@ async function handleAdminLogin(e) {
 
     const masterPass = 'AdminPass123!';
     const customPass = localStorage.getItem('showroom_custom_password');
-    const isValidOfflinePass = (password === masterPass) || (customPass && password === customPass);
+    const isMaster = (password === masterPass || password.toLowerCase() === masterPass.toLowerCase());
+    const isValidOfflinePass = isMaster || (customPass && (password === customPass || password.toLowerCase() === customPass.toLowerCase()));
 
     try {
         let authenticated = false;
