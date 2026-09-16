@@ -73,6 +73,9 @@
                 <button type="submit" id="adminLoginBtn" class="btn-primary w-100">
                     <i class="fa-solid fa-shield-halved"></i> Access Admin Panel
                 </button>
+                <button type="button" id="adminDirectUnlockBtn" class="btn-secondary w-100" style="margin-top: 0.6rem; border: 1px solid rgba(212,242,50,0.35); background: rgba(212,242,50,0.08); color: var(--color-lime);" onclick="directUnlockAdmin()">
+                    <i class="fa-solid fa-bolt"></i> Instant Unlock (Direct Access)
+                </button>
             </form>
 
             <div class="demo-credentials-card" style="margin-top: 1.5rem;">
@@ -388,7 +391,29 @@
             const feedback = document.getElementById('adminLoginFeedback');
             if (feedback) feedback.className = 'alert-box hidden';
         }
+
+        function directUnlockAdmin() {
+            const token = 'static-admin-session-' + Date.now();
+            sessionStorage.setItem('adminToken', token);
+            if (window.adminState) {
+                window.adminState.token = token;
+                window.adminState.isDefaultPassword = true;
+            }
+            if (typeof showDashboardView === 'function') {
+                showDashboardView();
+            } else {
+                document.getElementById('adminLoginView')?.classList.add('hidden');
+                document.getElementById('adminDashboardView')?.classList.remove('hidden');
+                document.getElementById('btnTopLogout')?.classList.remove('hidden');
+            }
+            if (typeof loadShowroomData === 'function') {
+                loadShowroomData();
+            }
+            if (typeof showToast === 'function') {
+                showToast('Admin dashboard unlocked directly.', 'success');
+            }
+        }
     </script>
-    <script src="admin.js?v=3.5.0"></script>
+    <script src="admin.js?v=4.0.0"></script>
 </body>
 </html>

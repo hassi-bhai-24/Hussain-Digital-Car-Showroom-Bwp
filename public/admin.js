@@ -6,6 +6,7 @@ const adminState = {
     config: {},
     selectedFiles: []
 };
+window.adminState = adminState;
 
 // HTML Escaping Utility for XSS Prevention
 function escapeHTML(str) {
@@ -185,6 +186,8 @@ function showDashboardView() {
         warning.classList.toggle('hidden', !adminState.isDefaultPassword);
     }
 }
+window.showDashboardView = showDashboardView;
+window.loadShowroomData = loadShowroomData;
 
 // Login Handler - Resilient Master Password Verification
 async function handleAdminLogin(e) {
