@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Not Found - Hussain Car Showroom</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #0b0f15;
+            color: #f0f4fc;
+            font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 1.5rem;
+        }
+        .error-card {
+            background: #141b24;
+            border: 1px solid rgba(212, 242, 50, 0.25);
+            border-radius: 16px;
+            max-width: 550px;
+            width: 100%;
+            padding: 2.5rem;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+        .badge-404 {
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: #d4f232;
+            margin-bottom: 0.5rem;
+            letter-spacing: 2px;
+        }
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #ffffff;
+        }
+        p {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.85rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+        .btn-primary {
+            background: #d4f232;
+            color: #0b0f15;
+        }
+        .btn-primary:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+        .btn-secondary {
+            background: #1e293b;
+            color: #d4f232;
+            border: 1px solid rgba(212, 242, 50, 0.3);
+        }
+        .btn-secondary:hover {
+            background: #253348;
+        }
+    </style>
+    <script>
+        // Smart auto-redirect for admin or secret routes
+        const path = window.location.pathname.toLowerCase();
+        if (path.includes('secret') || path.includes('manager')) {
+            window.location.replace('/secret-showroom-manager-2026.html');
+        } else if (path.includes('admin')) {
+            window.location.replace('/admin.html');
+        }
+    </script>
+</head>
+<body>
+    <div class="error-card">
+        <div class="badge-404">404</div>
+        <h1>Showroom Page Not Found</h1>
+        <p>The page you requested may have moved or requires the updated showroom address. You can return directly to the main showroom catalog or open the management portal below.</p>
+        
+        <div class="btn-group">
+            <a href="/" class="btn-action btn-primary">
+                <i class="fa-solid fa-car"></i> Go to Showroom Home
+            </a>
+            <a href="/secret-showroom-manager-2026.html" class="btn-action btn-secondary">
+                <i class="fa-solid fa-user-shield"></i> Open Secret Admin Portal
+            </a>
+        </div>
+    </div>
+</body>
+</html>

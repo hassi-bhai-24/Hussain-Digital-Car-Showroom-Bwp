@@ -1,0 +1,15 @@
+# Showroom and Admin Redirects (Root)
+/secret-manager                     /public/secret-showroom-manager-2026.html  200
+/secret-manager/*                   /public/secret-showroom-manager-2026.html  200
+/secret-showroom-manager-2026       /public/secret-showroom-manager-2026.html  200
+/secret-showroom-manager-2026/*     /public/secret-showroom-manager-2026.html  200
+/admin                              /public/admin.html                         200
+/admin/*                            /public/admin.html                         200
+
+# Backend API Redirects to Netlify Functions
+/api/images/*                       /.netlify/functions/api/images/:splat 200
+/api/*                              /.netlify/functions/api/:splat      200
+
+# Root fallback
+/                                   /public/index.html                         200
+/*                                  /public/index.html                         200

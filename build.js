@@ -34,6 +34,9 @@ const requiredFiles = [
     'public/app.js',
     'public/admin.html',
     'public/admin.js',
+    'public/secret-showroom-manager-2026.html',
+    'public/404.html',
+    'public/_redirects',
     'public/data/showroom.json',
     'server.js',
     'package.json'
