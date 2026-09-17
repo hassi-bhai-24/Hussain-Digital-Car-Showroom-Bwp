@@ -31,11 +31,6 @@ function getNetlifyBlobStore(storeName) {
         const siteID = process.env.SITE_ID || process.env.NETLIFY_SITE_ID;
         const token = process.env.NETLIFY_API_TOKEN || process.env.NETLIFY_AUTH_TOKEN;
         
-        // If neither token nor Netlify Blobs context is present, don't attempt calling Netlify Blobs
-        if (!process.env.NETLIFY_BLOBS_CONTEXT && !(siteID && token)) {
-            return null;
-        }
-
         const options = { name: storeName, consistency: 'strong' };
         if (siteID && token) {
             options.siteID = siteID;
@@ -61,10 +56,6 @@ app.use((req, res, next) => {
     if (req.url.startsWith('/.netlify/functions/api')) {
         req.url = req.url.replace('/.netlify/functions/api', '/api');
     }
-    // Handle requests forwarded by Netlify without /api prefix
-    if (!req.url.startsWith('/api') && (req.url.startsWith('/admin/login') || req.url.startsWith('/admin/verify') || req.url.startsWith('/admin/cars') || req.url.startsWith('/admin/config') || req.url.startsWith('/admin/change-password') || req.url.startsWith('/cars') || req.url.startsWith('/public/data'))) {
-        req.url = '/api' + req.url;
-    }
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('X-XSS-Protection', '1; mode=block');
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
@@ -84,15 +75,6 @@ app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 
 // Static asset serving
-app.get('/secret-manager', (req, res) => {
-    res.sendFile(path.join(PUBLIC_DIR, 'secret-showroom-manager-2026.html'));
-});
-app.get('/secret-showroom-manager-2026', (req, res) => {
-    res.sendFile(path.join(PUBLIC_DIR, 'secret-showroom-manager-2026.html'));
-});
-app.get('/admin', (req, res) => {
-    res.sendFile(path.join(PUBLIC_DIR, 'admin.html'));
-});
 app.use(express.static(PUBLIC_DIR));
 app.use('/uploads', express.static(UPLOADS_DIR, {
     setHeaders: (res) => {
@@ -151,26 +133,6 @@ function normalizePhone(raw) {
     return { waNumber: clean || '923238194402', display: display || '03238194402' };
 }
 
-const DEFAULT_JWT_SECRET = '0208b4d3617defc27d24ba44a9c845157be8920f69f8d7a7f48d12a03140e44b';
-
-let inMemoryDBCache = null;
-let lastDBFetchTime = 0;
-const DB_CACHE_TTL_MS = 1000; // 1s cache for high concurrency
-
-function getDBPath() {
-    const candidates = [
-        path.join('/tmp', 'database.json'),
-        path.join(process.cwd(), 'database.json'),
-        path.join(__dirname, 'database.json'),
-        path.join(__dirname, '..', '..', 'database.json'),
-        DB_FILE
-    ];
-    for (const p of candidates) {
-        if (fs.existsSync(p)) return p;
-    }
-    return DB_FILE;
-}
-
 function initDatabase() {
     let data = {
         config: {
@@ -187,15 +149,14 @@ function initDatabase() {
             isDefaultPassword: true
         },
         security: {
-            jwtSecret: DEFAULT_JWT_SECRET
+            jwtSecret: crypto.randomBytes(32).toString('hex')
         },
         cars: []
     };
 
-    const targetPath = getDBPath();
-    if (fs.existsSync(targetPath)) {
+    if (fs.existsSync(DB_FILE)) {
         try {
-            const raw = JSON.parse(fs.readFileSync(targetPath, 'utf8'));
+            const raw = JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
             data = { ...data, ...raw };
             if (!data.admin || !data.admin.passwordHash) {
                 data.admin = {
@@ -206,26 +167,35 @@ function initDatabase() {
                 };
             }
             if (!data.security || !data.security.jwtSecret) {
-                data.security = { jwtSecret: DEFAULT_JWT_SECRET };
+                data.security = { jwtSecret: crypto.randomBytes(32).toString('hex') };
             }
-        } catch (e) {
-            console.warn('Notice reading database file:', e.message);
+            fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
+        } catch {
+            fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
         }
-    }
-
-    inMemoryDBCache = data;
-    lastDBFetchTime = Date.now();
-
-    // Safe write: catch read-only filesystem errors in serverless environments
-    try {
-        fs.writeFileSync(targetPath, JSON.stringify(data, null, 2));
-    } catch (err) {
-        try {
-            fs.writeFileSync(path.join('/tmp', 'database.json'), JSON.stringify(data, null, 2));
-        } catch {}
+    } else {
+        fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
     }
 }
 initDatabase();
+
+function getDBPath() {
+    const candidates = [
+        path.join('/tmp', 'database.json'),
+        path.join(process.cwd(), 'database.json'),
+        path.join(__dirname, 'database.json'),
+        path.join(__dirname, '..', '..', 'database.json'),
+        DB_FILE
+    ];
+    for (const p of candidates) {
+        if (fs.existsSync(p)) return p;
+    }
+    return DB_FILE;
+}
+
+let inMemoryDBCache = null;
+let lastDBFetchTime = 0;
+const DB_CACHE_TTL_MS = 1000; // 1s cache for high concurrency
 
 async function readDBAsync() {
     const now = Date.now();
@@ -233,13 +203,11 @@ async function readDBAsync() {
         return inMemoryDBCache;
     }
 
-    // 1. Try reading from Netlify Blobs persistent store with quick timeout
+    // 1. Try reading from Netlify Blobs persistent store
     const blobStore = getNetlifyBlobStore('showroom-data');
     if (blobStore) {
         try {
-            const blobPromise = blobStore.get('database.json', { type: 'json' });
-            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Blobs timeout')), 1000));
-            const blobData = await Promise.race([blobPromise, timeoutPromise]);
+            const blobData = await blobStore.get('database.json', { type: 'json' });
             if (blobData && typeof blobData === 'object') {
                 if (!blobData.admin) {
                     blobData.admin = {
@@ -251,14 +219,14 @@ async function readDBAsync() {
                 }
                 if (!blobData.admin.tokenVersion) blobData.admin.tokenVersion = 1;
                 if (!blobData.security || !blobData.security.jwtSecret) {
-                    blobData.security = { jwtSecret: DEFAULT_JWT_SECRET };
+                    blobData.security = { jwtSecret: crypto.randomBytes(32).toString('hex') };
                 }
                 inMemoryDBCache = blobData;
                 lastDBFetchTime = now;
                 return blobData;
             }
         } catch (err) {
-            // Silently fallback to local database.json
+            console.warn('Netlify Blobs read notice:', err.message);
         }
     }
 
@@ -345,7 +313,7 @@ function writeDB(data) {
 function getJWTSecret() {
     if (process.env.JWT_SECRET) return process.env.JWT_SECRET;
     const db = readDB();
-    return db.security?.jwtSecret || DEFAULT_JWT_SECRET;
+    return db.security?.jwtSecret || 'fallback_secret_key_showroom_2026';
 }
 
 // ---------------------------------------------------------
@@ -364,29 +332,10 @@ function getClientIP(req) {
     return req.socket?.remoteAddress || req.ip || 'unknown';
 }
 
-const ACCEPTED_MASTER_PASSWORDS = [
-    'adminpass123!',
-    'adminpass123',
-    'admin',
-    'admin123',
-    'admin123!',
-    'hussain123!',
-    'hussain123',
-    'hussain'
-];
-
 function checkLoginRateLimit(req, res, next) {
     const ip = getClientIP(req);
     const now = Date.now();
     const record = loginAttemptsMap.get(ip);
-
-    // If master password is provided, bypass lockout to prevent accidental admin lockout
-    if (req.body && typeof req.body.password === 'string') {
-        const pass = req.body.password.trim().toLowerCase();
-        if (ACCEPTED_MASTER_PASSWORDS.includes(pass)) {
-            return next();
-        }
-    }
 
     if (record && record.lockedUntil && record.lockedUntil > now) {
         const remainingMinutes = Math.ceil((record.lockedUntil - now) / 60000);
@@ -522,12 +471,6 @@ function authenticateToken(req, res, next) {
     const token = authHeader && authHeader.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'Access denied. Authentication token required.' });
 
-    // Allow validated master/static tokens
-    if (token.startsWith('static-admin-session-') || token.startsWith('master-session-')) {
-        req.user = { username: 'admin', isMaster: true };
-        return next();
-    }
-
     const secret = getJWTSecret();
     jwt.verify(token, secret, (err, decoded) => {
         if (err) return res.status(403).json({ error: 'Session expired or invalid. Please sign in again.' });
@@ -657,31 +600,30 @@ app.post('/api/admin/login', checkLoginRateLimit, async (req, res) => {
     const { username, password } = req.body || {};
     const db = await readDBAsync();
 
+    const cleanInputUser = (username || '').trim().toLowerCase();
+    const storedUser = (db.admin?.username || 'admin').trim().toLowerCase();
+
+    // If a username is provided, verify it against stored account
+    if (cleanInputUser && cleanInputUser !== storedUser) {
+        const record = recordFailedLogin(ip);
+        const remaining = Math.max(0, MAX_LOGIN_ATTEMPTS - record.attempts);
+        return res.status(401).json({
+            error: `Invalid credentials. (${remaining} attempt${remaining === 1 ? '' : 's'} remaining before temporary lockout)`
+        });
+    }
+
     const inputPass = (password || '').trim();
     if (!inputPass) {
         return res.status(400).json({ error: 'Password is required to access admin panel.' });
     }
 
-    const inputLower = inputPass.toLowerCase();
-    const isMasterPass = ACCEPTED_MASTER_PASSWORDS.includes(inputLower);
-    const isHashValid = (db.admin?.passwordHash && typeof db.admin.passwordHash === 'string')
-        ? bcrypt.compareSync(inputPass, db.admin.passwordHash)
-        : false;
+    const isPassValid = db.admin?.passwordHash && bcrypt.compareSync(inputPass, db.admin.passwordHash);
 
-    const isPassValid = isMasterPass || isHashValid;
-
-    const cleanInputUser = (username || '').trim().toLowerCase();
-    const storedUser = (db.admin?.username || 'admin').trim().toLowerCase();
-
-    // If master password is provided, allow access regardless of browser-autofilled username
-    // Otherwise verify username matches stored admin account
-    const isUserValid = isMasterPass || !cleanInputUser || cleanInputUser === storedUser || cleanInputUser === 'admin';
-
-    if (!isPassValid || !isUserValid) {
+    if (!isPassValid) {
         const record = recordFailedLogin(ip);
         const remaining = Math.max(0, MAX_LOGIN_ATTEMPTS - record.attempts);
         return res.status(401).json({
-            error: `Invalid master password. Please use AdminPass123! (${remaining} attempt${remaining === 1 ? '' : 's'} remaining before temporary lockout)`
+            error: `Invalid password. (${remaining} attempt${remaining === 1 ? '' : 's'} remaining before temporary lockout)`
         });
     }
 
@@ -699,15 +641,9 @@ app.post('/api/admin/login', checkLoginRateLimit, async (req, res) => {
     res.json({
         token,
         username: db.admin?.username || 'admin',
-        isDefaultPassword: isMasterPass,
+        isDefaultPassword: !!db.admin?.isDefaultPassword,
         message: 'Authenticated securely.'
     });
-});
-
-// Explicit alias for /admin/login so Netlify direct routes never 404
-app.post('/admin/login', (req, res, next) => {
-    req.url = '/api/admin/login';
-    app.handle(req, res, next);
 });
 
 app.get('/api/admin/verify', authenticateToken, async (req, res) => {

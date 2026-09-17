@@ -6,8 +6,7 @@
   "scripts": {
     "dev": "node server.js",
     "build": "node build.js",
-    "start": "node server.js",
-    "lint": "node -c server.js build.js netlify/functions/api.js public/admin.js public/app.js"
+    "start": "node server.js"
   },
   "engines": {
     "node": ">=18.0.0"
