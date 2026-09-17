@@ -6,14 +6,6 @@
     "address": "Hussain digital Showroom, Bwp.",
     "description": "Curated. Verified. Yours. Premier luxury automotive showroom with 24/7 services and instant deals."
   },
-  "admin": {
-    "username": "admin",
-    "passwordHash": "$2a$10$gSuwnMU0rlGaL75E2IxvQu1kLfycT25c3rJanEd6drTAJbpUEeiqC",
-    "tokenVersion": 2
-  },
-  "security": {
-    "jwtSecret": "0208b4d3617defc27d24ba44a9c845157be8920f69f8d7a7f48d12a03140e44b"
-  },
   "cars": [
     {
       "id": "car-101",

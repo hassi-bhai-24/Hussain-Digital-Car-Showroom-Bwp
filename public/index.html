@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HUSSAIN Digital Car Showroom</title>
     
-    <meta name="description" content="Luxury dark automotive digital showroom with verified inventory, instant deals, 24/7 services, and admin management portal.">
+    <meta name="description" content="Luxury automotive showroom offering cars on easy installments and cash, 24/7 customer services, and instant WhatsApp deals.">
     <meta property="og:type" content="website">
     <meta property="og:title" content="HUSSAIN Digital Car Showroom">
-    <meta property="og:description" content="Luxury dark automotive digital showroom with verified inventory, instant deals, 24/7 services, and admin management portal.">
+    <meta property="og:description" content="Luxury automotive showroom offering cars on easy installments and cash, 24/7 customer services, and instant WhatsApp deals.">
     <meta property="og:image" content="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=80">
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -29,12 +29,9 @@
 
             <nav class="desktop-nav">
                 <a href="#home" class="nav-link">Home</a>
-                <a href="#inventory" class="nav-link">Inventory</a>
+                <a href="#services" class="nav-link">Financing & Services</a>
                 <a href="#about" class="nav-link">About</a>
                 <a href="#contact" class="nav-link">Contact</a>
-                <button class="btn-admin-trigger" onclick="openAdminModal()">
-                    <i class="fa-solid fa-lock"></i> Admin
-                </button>
             </nav>
 
             <button class="mobile-menu-toggle" aria-label="Open menu" onclick="toggleDrawer(true)">
@@ -51,12 +48,9 @@
         </div>
         <div class="drawer-links">
             <a href="#home" onclick="toggleDrawer(false)">Home</a>
-            <a href="#inventory" onclick="toggleDrawer(false)">Inventory</a>
+            <a href="#services" onclick="toggleDrawer(false)">Financing & Services</a>
             <a href="#about" onclick="toggleDrawer(false)">About</a>
             <a href="#contact" onclick="toggleDrawer(false)">Contact</a>
-            <button class="btn-admin-trigger w-100" onclick="toggleDrawer(false); openAdminModal();">
-                <i class="fa-solid fa-lock"></i> Admin Portal
-            </button>
         </div>
     </aside>
 
@@ -72,86 +66,133 @@
                     <h1 class="hero-headline">Find Your <br><span class="accent-text">Dream Car.</span></h1>
                     <p class="hero-description" id="heroDescription">Browse through our verified luxury inventory with instant deals. Showroom services are available 24/7.</p>
                     <div class="hero-actions">
-                        <a href="#inventory" class="btn-primary">
-                            Explore Inventory <i class="fa-solid fa-arrow-down-long"></i>
+                        <a href="#services" class="btn-primary">
+                            Explore Financing Plans <i class="fa-solid fa-arrow-down-long"></i>
                         </a>
-                        <div class="trust-indicator">
-                            <i class="fa-solid fa-shield-halved"></i>
-                            <span>100% Verified Vehicles</span>
-                        </div>
+                        <a href="https://wa.me/923238194402" target="_blank" rel="noopener noreferrer" id="heroDealBtn" class="btn-secondary">
+                            <i class="fa-brands fa-whatsapp"></i> Get Instant Deal
+                        </a>
                     </div>
                 </div>
 
                 <div class="hero-visual">
                     <div class="hero-card-preview">
-                        <div class="hero-visual-badge"><i class="fa-solid fa-star"></i> Featured Collection</div>
+                        <div class="hero-visual-badge"><i class="fa-solid fa-bolt"></i> Instant Approval & Delivery</div>
                         <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=1200&q=80" alt="Luxury Car" class="hero-img" id="heroFeaturedImg">
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Filters Section -->
-        <section class="filter-section">
+        <!-- Services & Financing Section: Installments vs Cash -->
+        <section id="services" class="services-section">
             <div class="container">
-                <div class="search-bar-card">
-                    <div class="search-input-group">
-                        <label for="searchInput"><i class="fa-solid fa-magnifying-glass"></i> Search</label>
-                        <input type="text" id="searchInput" placeholder="Search make, model, or year..." oninput="applyFilters()">
+                <!-- Compelling Pitch Banner -->
+                <div class="financing-pitch-banner">
+                    <div class="pitch-badge">
+                        <i class="fa-solid fa-fire"></i> WHY PAY FULL CASH UPFRONT?
+                    </div>
+                    <h2 class="pitch-title">Upgrade Your Drive Today — Keep Your Cash Working For You.</h2>
+                    <p class="pitch-subtitle">
+                        Whether you prefer <strong>full cash payment</strong> or <strong>customized monthly installment plans</strong>, we have the keys ready for you. But smart buyers never lock up all their liquid savings in one place. Discover why <strong>8 out of 10 clients choose our installment program</strong>:
+                    </p>
+                </div>
+
+                <!-- Comparison Cards: Cash vs Installments (Highlighting Installments) -->
+                <div class="payment-options-grid">
+                    <!-- Cash Option Card -->
+                    <div class="payment-card payment-cash">
+                        <div class="payment-card-badge">Full Settlement</div>
+                        <div class="payment-icon-box">
+                            <i class="fa-solid fa-money-bill-wave"></i>
+                        </div>
+                        <h3 class="payment-card-title">Cash Purchase</h3>
+                        <p class="payment-card-desc">Straightforward ownership with zero ongoing obligations.</p>
+                        
+                        <ul class="payment-features-list">
+                            <li><i class="fa-solid fa-check"></i> Immediate invoice & clear title transfer</li>
+                            <li><i class="fa-solid fa-check"></i> One-time single payment deal</li>
+                            <li><i class="fa-solid fa-check"></i> Complete mechanical inspection certificate</li>
+                            <li class="notice-item"><i class="fa-solid fa-circle-exclamation"></i> Locks up 100% of your liquidity in one vehicle</li>
+                        </ul>
+
+                        <a href="https://wa.me/923238194402?text=Hello%20Hussain%20Showroom%2C%20I%20am%20interested%20in%20a%20Cash%20deal.%20Please%20share%20details." target="_blank" rel="noopener noreferrer" class="btn-payment-action btn-outline-deal">
+                            <i class="fa-solid fa-handshake"></i> Discuss Cash Deal
+                        </a>
                     </div>
 
-                    <div class="search-input-group">
-                        <label for="statusFilter"><i class="fa-solid fa-filter"></i> Status</label>
-                        <select id="statusFilter" onchange="applyFilters()">
-                            <option value="all">All Vehicles</option>
-                            <option value="available">🟢 Available Only</option>
-                            <option value="pending">🟠 Sale in Progress</option>
-                            <option value="sold">🔴 Sold</option>
-                        </select>
-                    </div>
+                    <!-- Installments Option Card (Featured / Highly Recommended) -->
+                    <div class="payment-card payment-installments featured-plan">
+                        <div class="payment-card-badge badge-popular">
+                            <i class="fa-solid fa-star"></i> RECOMMENDED SMART CHOICE
+                        </div>
+                        <div class="payment-icon-box accent-box">
+                            <i class="fa-solid fa-calculator"></i>
+                        </div>
+                        <h3 class="payment-card-title">Easy Installment Plans</h3>
+                        <p class="payment-card-desc">Drive the car you truly deserve today without depleting your hard-earned emergency or business capital.</p>
 
-                    <div class="search-input-group">
-                        <label for="maxPriceInput"><i class="fa-solid fa-tag"></i> Max Price (PKR)</label>
-                        <input type="number" id="maxPriceInput" placeholder="Any Price" oninput="applyFilters()">
-                    </div>
+                        <div class="plan-advantages-box">
+                            <div class="advantage-item">
+                                <i class="fa-solid fa-shield-halved text-lime"></i>
+                                <div>
+                                    <strong>Preserve Your Cash Flow</strong>
+                                    <span>Reinvest your remaining funds in business, real estate, or emergencies while enjoying daily comfort.</span>
+                                </div>
+                            </div>
+                            <div class="advantage-item">
+                                <i class="fa-solid fa-gauge-high text-lime"></i>
+                                <div>
+                                    <strong>Step Up to a Higher Category</strong>
+                                    <span>Get a newer, more luxurious model with premium safety features that might exceed an all-cash budget.</span>
+                                </div>
+                            </div>
+                            <div class="advantage-item">
+                                <i class="fa-solid fa-clock-rotate-left text-lime"></i>
+                                <div>
+                                    <strong>Flexible 1 to 5 Years Tenures</strong>
+                                    <span>Tailored down-payments (from 20%) with comfortable monthly installments adjusted strictly to your income.</span>
+                                </div>
+                            </div>
+                            <div class="advantage-item">
+                                <i class="fa-solid fa-bolt text-lime"></i>
+                                <div>
+                                    <strong>Minimal Documentation & Fast Handover</strong>
+                                    <span>Transparent terms, zero hidden clauses, and immediate vehicle delivery upon initial clearance.</span>
+                                </div>
+                            </div>
+                        </div>
 
-                    <div class="search-input-group">
-                        <label for="sortBySelect"><i class="fa-solid fa-arrow-down-short-wide"></i> Sort By</label>
-                        <select id="sortBySelect" onchange="applyFilters()">
-                            <option value="featured">Featured / Newest</option>
-                            <option value="price-asc">Price: Low to High</option>
-                            <option value="price-desc">Price: High to Low</option>
-                            <option value="year-desc">Year: Newest First</option>
-                        </select>
-                    </div>
-
-                    <div class="checkbox-filter-group">
-                        <label class="custom-checkbox">
-                            <input type="checkbox" id="installmentOnlyToggle" onchange="applyFilters()">
-                            <span class="checkmark"></span>
-                            <span class="checkbox-label">Installments Only</span>
-                        </label>
+                        <div class="installment-cta-wrapper">
+                            <a href="https://wa.me/923238194402?text=Hello%20Hussain%20Showroom%2C%20I%20want%20to%20apply%20for%20an%20Easy%20Installment%20Plan%20for%20a%20car.%20Please%20guide%20me%20with%20plans%20and%20instant%20deals." target="_blank" rel="noopener noreferrer" class="btn-primary w-100 btn-glow">
+                                <i class="fa-brands fa-whatsapp"></i> Lock In Your Installment Plan
+                            </a>
+                            <span class="instant-approval-note">
+                                <i class="fa-solid fa-clock"></i> Instant Deal Response within 5 minutes on WhatsApp
+                            </span>
+                        </div>
                     </div>
                 </div>
 
-                <div class="inventory-status-bar">
-                    <span id="inventoryCountBadge" class="inventory-count">Loading verified inventory...</span>
-                    <button class="btn-clear-filters hidden" id="clearFiltersBtn" onclick="clearFilters()">
-                        <i class="fa-solid fa-rotate-left"></i> Reset Filters
-                    </button>
-                </div>
-            </div>
-        </section>
-
-        <!-- Inventory Grid -->
-        <section id="inventory" class="inventory-section">
-            <div class="container">
-                <div class="section-header">
-                    <h2 class="section-title">Verified Collection</h2>
-                    <p class="section-subtitle">Click any vehicle to view full specifications or slide directly into our WhatsApp chat.</p>
-                </div>
-                <div id="carGrid" class="car-grid">
-                    <!-- Dynamic Vehicle Cards -->
+                <!-- Call to Action Banner for Instant Deals -->
+                <div class="instant-deal-cta-card">
+                    <div class="cta-card-content">
+                        <div class="cta-icon-glow">
+                            <i class="fa-solid fa-phone-volume"></i>
+                        </div>
+                        <div class="cta-text">
+                            <h3>Ready to Drive? Contact Us Now for Instant Deals!</h3>
+                            <p>Our showroom representatives are available 24/7 to provide instant customized quotes, verify your installment eligibility, and finalize unbeatable deals on both cash and financing.</p>
+                        </div>
+                        <div class="cta-actions">
+                            <a href="https://wa.me/923238194402?text=Assalam-o-Alaikum%20Admin%2C%20I%20am%20ready%20for%20an%20instant%20car%20deal.%20Please%20share%20available%20options." target="_blank" rel="noopener noreferrer" class="btn-primary btn-cta-main" id="servicesWaDealBtn">
+                                <i class="fa-brands fa-whatsapp"></i> Chat for Instant Deal
+                            </a>
+                            <a href="tel:03238194402" class="btn-call-direct" id="servicesCallBtn">
+                                <i class="fa-solid fa-phone"></i> Call: 03238194402
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -266,400 +307,6 @@
             <i class="fa-brands fa-whatsapp"></i>
             <span class="wa-floating-label">WhatsApp Us</span>
         </a>
-    </div>
-
-    <!-- Vehicle Details Modal -->
-    <div class="modal-backdrop" id="vehicleDetailModal">
-        <div class="modal-card modal-large">
-            <div class="modal-header">
-                <div>
-                    <h3 id="detailCarTitle" class="modal-title">Vehicle Details</h3>
-                    <span id="detailCarSub" class="detail-subtitle">Verified Showroom Listing</span>
-                </div>
-                <button class="btn-close" onclick="closeModal('vehicleDetailModal')">&times;</button>
-            </div>
-            <div class="modal-body" id="detailModalBody">
-                <!-- Injected dynamically -->
-            </div>
-        </div>
-    </div>
-
-    <!-- WhatsApp Inquiry Modal -->
-    <div class="modal-backdrop" id="whatsappModal">
-        <div class="modal-card">
-            <div class="modal-header">
-                <div>
-                    <h3><i class="fa-brands fa-whatsapp text-lime"></i> Inquire via WhatsApp</h3>
-                    <a href="https://wa.me/923238194402" target="_blank" rel="noopener noreferrer" id="modalAdminPhoneSubLink" class="modal-wa-sub-link" title="WhatsApp 03238194402">
-                        <i class="fa-brands fa-whatsapp"></i> <strong id="modalAdminPhoneSub">03238194402</strong>
-                    </a>
-                </div>
-                <button class="btn-close" onclick="closeModal('whatsappModal')">&times;</button>
-            </div>
-            <div class="modal-body">
-                <input type="hidden" id="modalCarId">
-                <input type="hidden" id="modalPaymentType">
-
-                <div id="modalVehicleSummary" class="modal-car-mini-preview"></div>
-
-                <div class="form-group">
-                    <label for="buyerNameInput">Your Name</label>
-                    <input type="text" id="buyerNameInput" placeholder="e.g. Ali Khan" oninput="updateWhatsAppPreview()">
-                </div>
-
-                <div class="form-group">
-                    <label for="buyerPhoneInput">Your Phone Number (Optional)</label>
-                    <input type="text" id="buyerPhoneInput" placeholder="e.g. +92 300 1234567" oninput="updateWhatsAppPreview()">
-                </div>
-
-                <div class="form-group">
-                    <label>Quick Message Topic</label>
-                    <div class="quick-chips">
-                        <button type="button" class="chip-btn active" onclick="setQuickMessageTemplate('availability')">Vehicle Availability</button>
-                        <button type="button" class="chip-btn" onclick="setQuickMessageTemplate('inspection')">Book Inspection</button>
-                        <button type="button" class="chip-btn" onclick="setQuickMessageTemplate('price')">Final Cash Offer</button>
-                        <button type="button" class="chip-btn" onclick="setQuickMessageTemplate('installment')">Installment Plan</button>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="whatsappMessagePreview">Message Preview for Dealer</label>
-                    <textarea id="whatsappMessagePreview" rows="6" class="preview-textarea"></textarea>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="closeModal('whatsappModal')">Cancel</button>
-                <a id="btnDirectSendWhatsApp" href="#" target="_blank" rel="noopener noreferrer" class="btn-whatsapp" onclick="handleWhatsAppModalSubmit(event)">
-                    Slide to WhatsApp <i class="fa-solid fa-paper-plane"></i>
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Admin Portal Modal -->
-    <div class="modal-backdrop" id="adminModal">
-        <div class="modal-card modal-large">
-            <div class="modal-header">
-                <div>
-                    <h3><i class="fa-solid fa-shield-halved text-lime"></i> Showroom Admin Portal</h3>
-                    <span class="detail-subtitle" id="adminHeaderStatus">Manage Inventory & Showroom Profile</span>
-                </div>
-                <button class="btn-close" onclick="closeModal('adminModal')">&times;</button>
-            </div>
-            <div class="modal-body">
-                <!-- Login View -->
-                <div id="adminLoginView">
-                    <div id="adminLoginFeedback" class="alert-box hidden"></div>
-                    
-                    <div class="admin-login-card">
-                        <div class="admin-login-header">
-                            <div class="admin-icon-circle"><i class="fa-solid fa-user-shield"></i></div>
-                            <h4>Showroom Manager Sign In</h4>
-                            <p class="admin-login-desc">Sign in to add new vehicles, update prices, manage installment plans, and edit showroom contact info.</p>
-                        </div>
-
-                        <form id="adminLoginForm" onsubmit="handleAdminLogin(event)">
-                            <div class="form-group">
-                                <label for="adminPass"><i class="fa-solid fa-lock"></i> Master Password</label>
-                                <div class="password-wrapper">
-                                    <input type="password" id="adminPass" required placeholder="Enter password to access panel" autocomplete="current-password">
-                                    <button type="button" class="btn-toggle-pass" onclick="togglePassVisibility('adminPass', this)" aria-label="Toggle password visibility">
-                                        <i class="fa-solid fa-eye"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            <div class="form-group" style="margin-top: -0.25rem; margin-bottom: 1.25rem;">
-                                <details style="font-size: 0.8rem; color: var(--text-secondary);">
-                                    <summary style="cursor: pointer; opacity: 0.75; font-size: 0.78rem;">Custom Username (Optional)</summary>
-                                    <div style="padding-top: 0.5rem;">
-                                        <input type="text" id="adminUser" placeholder="Enter username (if customized)" autocomplete="username">
-                                    </div>
-                                </details>
-                            </div>
-                            <button type="submit" id="adminLoginBtn" class="btn-primary w-100">
-                                <i class="fa-solid fa-shield-halved"></i> Access Admin Panel
-                            </button>
-                        </form>
-
-                        <div class="demo-credentials-card">
-                            <div class="demo-cred-info">
-                                <i class="fa-solid fa-shield-halved text-lime" style="font-size: 1.2rem;"></i>
-                                <div>
-                                    <strong style="color: var(--text-primary); display: block;">Protected Administrative Access</strong>
-                                    <span style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4; display: block;">
-                                        Authorized showroom management only. Access requires the encrypted master password. All login attempts are monitored and rate-limited.
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Dashboard View -->
-                <div id="adminDashboardView" class="hidden">
-                    <!-- Password Security Notice -->
-                    <div id="defaultPasswordWarning" class="alert-box alert-error hidden" style="margin-bottom: 1.5rem;">
-                        <i class="fa-solid fa-shield-halved" style="font-size: 1.3rem;"></i>
-                        <div>
-                            <strong>Security Advisory</strong>
-                            <p style="margin-top: 0.2rem; font-size: 0.82rem;">Protect your administrative portal. Please navigate to the <strong>Security Tab</strong> to set or update your private master password.</p>
-                        </div>
-                    </div>
-
-                    <!-- Admin Top Stats -->
-                    <div class="admin-stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-label">Total Inventory</div>
-                            <div class="stat-value" id="statTotalCars">0</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Available</div>
-                            <div class="stat-value text-available" id="statAvailableCars">0</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Sale in Progress</div>
-                            <div class="stat-value text-pending" id="statPendingCars">0</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Inventory Valuation</div>
-                            <div class="stat-value text-lime" id="statTotalValue">PKR 0</div>
-                        </div>
-                    </div>
-
-                    <div class="admin-tabs">
-                        <button class="tab-btn active" data-tab="inventoryTab" onclick="switchAdminTab('inventoryTab')">
-                            <i class="fa-solid fa-car"></i> Vehicles (<span id="tabCountVehicles">0</span>)
-                        </button>
-                        <button class="tab-btn" data-tab="addCarTab" onclick="startNewCarForm()">
-                            <i class="fa-solid fa-plus"></i> <span id="addTabLabel">Add Vehicle</span>
-                        </button>
-                        <button class="tab-btn" data-tab="configTab" onclick="switchAdminTab('configTab')">
-                            <i class="fa-solid fa-sliders"></i> Showroom Settings
-                        </button>
-                        <button class="tab-btn" data-tab="securityTab" onclick="switchAdminTab('securityTab')">
-                            <i class="fa-solid fa-shield"></i> Security
-                        </button>
-                        <button class="btn-logout" onclick="logoutAdmin()">
-                            <i class="fa-solid fa-right-from-bracket"></i> Logout
-                        </button>
-                    </div>
-
-                    <!-- Inventory Tab -->
-                    <div id="inventoryTab" class="tab-content active">
-                        <div class="tab-toolbar">
-                            <input type="text" id="adminTableSearch" placeholder="Filter inventory by name or year..." class="admin-search-input" oninput="filterAdminTable()">
-                            <button class="btn-primary btn-sm" onclick="startNewCarForm()">
-                                <i class="fa-solid fa-plus"></i> Add New Vehicle
-                            </button>
-                        </div>
-                        <div class="table-wrapper">
-                            <table class="admin-table">
-                                <thead>
-                                    <tr>
-                                        <th>Vehicle</th>
-                                        <th>Price (PKR)</th>
-                                        <th>Status Quick Switch</th>
-                                        <th>Installment Plan</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="adminCarTableBody"></tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Add/Edit Vehicle Tab -->
-                    <div id="addCarTab" class="tab-content">
-                        <div id="carFormFeedback" class="alert-box hidden"></div>
-
-                        <div class="form-section-header">
-                            <h4 id="carFormHeading">Add New Vehicle to Showroom</h4>
-                            <button type="button" class="btn-secondary btn-sm hidden" id="btnCancelEdit" onclick="startNewCarForm()">
-                                Cancel Edit & Add New
-                            </button>
-                        </div>
-
-                        <form id="carForm" onsubmit="handleCarFormSubmit(event)">
-                            <input type="hidden" id="carFormEditId">
-                            <div class="form-grid">
-                                <div class="form-group">
-                                    <label>Vehicle Name & Model *</label>
-                                    <input type="text" id="formCarName" required placeholder="e.g. Toyota Fortuner Legender">
-                                </div>
-                                <div class="form-group">
-                                    <label>Model Year *</label>
-                                    <input type="text" id="formCarYear" required placeholder="2024">
-                                </div>
-                                <div class="form-group">
-                                    <label>Mileage *</label>
-                                    <input type="text" id="formCarMileage" required placeholder="8,500 km">
-                                </div>
-                                <div class="form-group">
-                                    <label>Cash Price (PKR) *</label>
-                                    <input type="number" id="formCarPrice" required placeholder="18500000" min="0">
-                                </div>
-                                <div class="form-group span-2">
-                                    <label>Specifications & Features *</label>
-                                    <input type="text" id="formCarSpecs" required placeholder="2.8L Diesel | Automatic | 4x4 | Sunroof | Leather Seats">
-                                </div>
-                                <div class="form-group span-2">
-                                    <label>Inventory Status</label>
-                                    <select id="formCarStatus">
-                                        <option value="available">🟢 Available for Sale</option>
-                                        <option value="pending">🟠 Sale in Progress (Booking Advance)</option>
-                                        <option value="sold">🔴 Sold & Delivered</option>
-                                    </select>
-                                </div>
-                                <div class="form-group span-2">
-                                    <label class="custom-checkbox">
-                                        <input type="checkbox" id="formCarInstallmentCheck" onchange="toggleInstallmentInputs()">
-                                        <span class="checkmark"></span>
-                                        <span class="checkbox-label">Offer Financing / Installment Plan</span>
-                                    </label>
-                                </div>
-                                <div class="form-group span-2 hidden" id="installmentDetailsGroup">
-                                    <label>Installment Terms & Details</label>
-                                    <input type="text" id="formCarInstallmentPlan" placeholder="e.g. Rs. 4,500,000 Down Payment | Rs. 350,000/mo (36 Months)">
-                                </div>
-                                <div class="form-group span-2">
-                                    <label>Upload Vehicle Photos (Up to 5 files)</label>
-                                    <input type="file" id="formCarFiles" multiple accept="image/*">
-                                    <span class="input-hint">JPG, PNG, WEBP files supported.</span>
-                                </div>
-                                <div class="form-group span-2">
-                                    <label>Or Web Image URLs (Comma or Newline Separated)</label>
-                                    <textarea id="formCarImageUrls" rows="3" placeholder="https://images.unsplash.com/..., https://..."></textarea>
-                                    <span class="input-hint">Paste links to online car photos. They will be displayed in the slider and detail view.</span>
-                                </div>
-                            </div>
-                            <button type="submit" class="btn-primary w-100 mt-1" id="carFormSubmitBtn">
-                                <i class="fa-solid fa-floppy-disk"></i> Save Vehicle to Inventory
-                            </button>
-                        </form>
-                    </div>
-
-                    <!-- Settings Tab -->
-                    <div id="configTab" class="tab-content">
-                        <div id="configFeedback" class="alert-box hidden"></div>
-
-                        <form id="configForm" onsubmit="handleConfigSubmit(event)">
-                            <div class="form-group">
-                                <label>Showroom Name</label>
-                                <input type="text" id="configShowroomName" required placeholder="HUSSAIN Digital Showroom">
-                            </div>
-                            <div class="form-group">
-                                <label>Admin WhatsApp Contact Number *</label>
-                                <input type="text" id="configWhatsapp" required placeholder="03238194402">
-                                <span class="input-hint">WhatsApp contact number (e.g. <code>03238194402</code>).</span>
-                            </div>
-                            <div class="form-group">
-                                <label>Showroom Physical Address</label>
-                                <input type="text" id="configAddress" required placeholder="Hussain digital Showroom, Bwp.">
-                            </div>
-                            <div class="form-group">
-                                <label>Showroom Tagline / About Description</label>
-                                <textarea id="configDescription" rows="3" placeholder="Curated. Verified. Yours. Premier luxury automotive showroom."></textarea>
-                            </div>
-                            <div class="form-actions-row">
-                                <button type="submit" class="btn-primary">
-                                    <i class="fa-solid fa-check"></i> Save Showroom Settings
-                                </button>
-                                <button type="button" class="btn-secondary" onclick="testWhatsAppConfiguration()">
-                                    <i class="fa-brands fa-whatsapp"></i> Test Current WhatsApp Link
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-
-                    <!-- Security Tab -->
-                    <div id="securityTab" class="tab-content">
-                        <div id="securityFeedback" class="alert-box hidden"></div>
-
-                        <!-- Active Security Defenses Overview -->
-                        <div style="background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 1.25rem; margin-bottom: 1.5rem;">
-                            <h4 style="font-size: 1rem; font-weight: 700; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
-                                <i class="fa-solid fa-shield-halved text-lime"></i> Active Server Security Protections
-                            </h4>
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem; font-size: 0.82rem;">
-                                <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-primary);">
-                                    <i class="fa-solid fa-circle-check text-lime"></i>
-                                    <span><strong>Brute-Force Shield:</strong> 5-attempt IP Lockout</span>
-                                </div>
-                                <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-primary);">
-                                    <i class="fa-solid fa-circle-check text-lime"></i>
-                                    <span><strong>Password Hashing:</strong> bcrypt (Salt Cost 12)</span>
-                                </div>
-                                <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-primary);">
-                                    <i class="fa-solid fa-circle-check text-lime"></i>
-                                    <span><strong>JWT Token Secret:</strong> 256-bit Crypto Random</span>
-                                </div>
-                                <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-primary);">
-                                    <i class="fa-solid fa-circle-check text-lime"></i>
-                                    <span><strong>Session Revocation:</strong> Instant Token Versioning</span>
-                                </div>
-                                <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-primary);">
-                                    <i class="fa-solid fa-circle-check text-lime"></i>
-                                    <span><strong>XSS Defense:</strong> HTML Tag & Protocol Sanitizer</span>
-                                </div>
-                                <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-primary);">
-                                    <i class="fa-solid fa-circle-check text-lime"></i>
-                                    <span><strong>Upload Sandbox:</strong> Strict MIME/Ext Whitelist</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <form id="securityForm" onsubmit="handleChangePasswordSubmit(event)">
-                            <div class="form-section-header">
-                                <h4>Change Master Admin Credentials</h4>
-                                <p class="admin-login-desc">Set your private administrator password. Changing the password will immediately invalidate all other active sessions.</p>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="secCurrentPassword">Current Password *</label>
-                                <input type="password" id="secCurrentPassword" required placeholder="Enter your current password">
-                            </div>
-                            <div class="form-group">
-                                <label for="secNewUsername">Change Username (Optional)</label>
-                                <input type="text" id="secNewUsername" placeholder="Leave blank to keep current username">
-                            </div>
-                            <div class="form-grid">
-                                <div class="form-group">
-                                    <label for="secNewPassword">New Password (Min 8 chars, letters & numbers) *</label>
-                                    <input type="password" id="secNewPassword" placeholder="Enter new strong password">
-                                </div>
-                                <div class="form-group">
-                                    <label for="secConfirmPassword">Confirm New Password *</label>
-                                    <input type="password" id="secConfirmPassword" placeholder="Re-enter new password">
-                                </div>
-                            </div>
-                            <button type="submit" class="btn-primary" id="btnUpdateSecurity">
-                                <i class="fa-solid fa-lock"></i> Update Master Credentials
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Confirm Delete Modal (Avoids window.confirm blocked in iframes) -->
-    <div class="modal-backdrop" id="confirmDeleteModal">
-        <div class="modal-card" style="max-width: 420px;">
-            <div class="modal-header">
-                <h3 class="text-danger"><i class="fa-solid fa-triangle-exclamation"></i> Delete Vehicle</h3>
-                <button class="btn-close" onclick="closeModal('confirmDeleteModal')">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p>Are you sure you want to permanently remove <strong id="deleteVehicleName">this vehicle</strong> from the showroom inventory?</p>
-                <input type="hidden" id="deleteVehicleId">
-            </div>
-            <div class="modal-footer">
-                <button class="btn-secondary" onclick="closeModal('confirmDeleteModal')">Cancel</button>
-                <button class="btn-danger" onclick="confirmExecuteDelete()">
-                    <i class="fa-solid fa-trash"></i> Yes, Delete Vehicle
-                </button>
-            </div>
-        </div>
     </div>
 
     <!-- Toast Notification Container -->
